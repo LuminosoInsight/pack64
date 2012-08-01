@@ -21,8 +21,9 @@ def twosComplementEncode(number):
         number += 262144 # that's 32*(64^2) + 2^17
     # integer-division
     first = number / 4096
-    second = (number - 4096*first) / 64
-    third = number - 4096*first - 64*second
+    firstval = 4096 * first
+    second = firstval / 64
+    third = firstval - 64*second
     return chars[first] + chars[second] + chars[third]
 
 def twosComplementDecode(string):
@@ -34,7 +35,7 @@ def twosComplementDecode(string):
     number = 4096 * chars_to_indices[string[0]] + \
                64 * chars_to_indices[string[1]] + \
                     chars_to_indices[string[2]]
-    if number > 262144:
+    if number > 131071:
         number -= 262144
     return number
 
