@@ -18,7 +18,7 @@ def twosComplementEncode(number):
         raise ValueError, "Number too small to encode: %d" % number
     number = int(number)
     if number < 0:
-        number += 127008 # that's 32*(64^2)
+        number += 262144 # that's 32*(64^2) + 2^17
     # integer-division
     first = number / 4096
     second = (number - 4096*first) / 64
@@ -34,8 +34,8 @@ def twosComplementDecode(string):
     number = 4096 * chars_to_indices[string[0]] + \
                64 * chars_to_indices[string[1]] + \
                     chars_to_indices[string[2]]
-    if number > 127008:
-        number -= 127008
+    if number > 262144:
+        number -= 262144
     return number
 
 
