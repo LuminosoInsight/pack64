@@ -1,0 +1,73 @@
+pack64
+======
+Packs a NumPy vector into a kind-of-floating-point, kind-of-base64
+representation, requiring only 3 bytes per vector entry.
+
+This is meant for transmitting vector data over the Internet, in a
+situation where:
+
+* Arbitrary bytes can't be transmitted
+* We need to send the vector in as few bytes as possible
+* Simply base64-encoding floating-point data -- at 5.33 bytes
+  per entry -- isn't small enough
+
+Possible applications include rapidly updating a vector using STOMP, or
+encoding a vector in a URL.
+
+The function returns a string *b* of bytes, representing digits using the
+URL-safe base64 character set (A-Z, a-z, 0-9, -, _), as follows:
+
+* b[0] contains the power-of-two exponent, biased by 40. That is:
+
+    - An exponent of 0 ("A") means to multiply all the integers that
+      follow by 2^-40.
+    - An exponent of 30 ("e") means to divide the integers by 1024.
+    - An exponent of 40 ("o") means to leave the integers as is.
+    - An exponent of 63 ("_") means to multiply the integers by
+      2^23.
+
+  Call this number 2^(b[0] - 40) the *increment*.
+
+* The increment is chosen to maximize precision. To choose the increment,
+  find the number "a" such that 2^a is *larger* than all the magnitudes
+  in the vector. The correct value for the increment is then 2^(a - 17).
+  However, if this gives an increment lower than 2^-40, use 2^-40 instead.
+
+* b[1:4], b[4:7], etc. contain the values in the vector, as 18-bit,
+  big-endian, twos-complement integers, which will all be multiplied by
+  the increment. That is:
+
+    - AAA represents 0.
+    - AAB represents 1.
+    - AAC represents 2.
+    - ___ represents -1.
+    - __- represents -2.
+    - f__ represents the highest possible value, (2^17 - 1).
+    - gAA represents the lowest possible value, -(2^17).
+  
+The last value will be found in b[3*K-2 : 3*K+1], so the length of the
+string overall will be 3*K + 1.
+
+This encoding can represent positive, negative, or zero values, with
+magnitudes from 2^-40 to approximately 2^40, as long as the other
+values in the vector are comparable in magnitude.
+
+If the vector contains infinity, NaN, or an entry of magnitude 2^40 or
+greater, this should raise a ValueError.
+
+
+unpack64
+========
+Unpack a NumPy vector that has been encoded with the pack64 function.
+
+Takes in a string of 3n+1 URL-safe base64 characters, and returns a NumPy
+np.float32 vector of length n, such that unpack64(pack64(vec)) is equal
+to vec within five significant digits of precision.
+
+
+Existing implementation
+=======================
+You can test an implementation against the `pack64_check` and `unpack64`
+functions in csc_utils:
+
+    from csc_utils.vector import pack64_check, unpack64
