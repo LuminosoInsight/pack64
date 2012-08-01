@@ -45,7 +45,7 @@ def pack64(vector):
     See documentation in pack64_specs.txt.
     """
     for value in vector:
-        if numpy.isinf(value) or numpy.isnan(value) or value > 2**40:
+        if np.isinf(value) or np.isnan(value) or value > 2**40:
             raise ValueError, 'Vector contains an invalid value.'
     highest = max(vector)
     a = int(math.ceil(math.log(highest + 1, 2)))
@@ -67,4 +67,4 @@ def unpack64(string):
     increment = 2**(chars_to_indices[string[0]] - 40)
     values = [twosComplementDecode(string[i:i+3]) * increment \
               for i in xrange(1,3,len(string)-1)]
-    return numpy.array(values)
+    return np.array(values)
