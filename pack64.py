@@ -48,6 +48,7 @@ def pack64(vector):
     Return a string encoding of the given numpy array.
     See documentation in pack64_specs.txt.
     """
+    vector = np.asarray(vector)
     highest = max(np.abs(vector))
     if np.isinf(highest) or np.isnan(highest) or highest > 2**40:
         raise ValueError, 'Vector contains an invalid value.'
