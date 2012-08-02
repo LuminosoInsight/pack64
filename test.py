@@ -1,6 +1,7 @@
 from pack64 import pack64, unpack64
 from csc_utils.vector import pack64_check as reference_pack64, unpack64 as reference_unpack64
 import numpy as np
+import time
 
 def test_random_vectors():
     for iter in xrange(800):
@@ -16,6 +17,8 @@ def test_random_vectors():
             pass
 
 def test_specific_vectors():
+    yield encoding_check, []
+    yield decoding_check, []
     yield encoding_check, [0., 0., 0.]
     yield decoding_check, [0., 0., 0.]
     yield encoding_check, [-1.]
@@ -38,4 +41,17 @@ def decoding_check(vec):
     a = reference_unpack64(encoded)
     b = unpack64(encoded)
     assert np.allclose(a, b), '%s should have decoded to %s, got %s' % (encoded, a, b)
+
+def test_speed():
+    vectors = [np.random.normal(size=(i%40+1,)) for i in xrange(40)]
+    start1 = time.time()
+    for vec in vectors:
+        reference_unpack64(reference_pack64(vec))
+    time_reference = (time.time() - start1)*1000
+    start2 = time.time()
+    for vec in vectors:
+        unpack64(pack64(vec))
+    time_ours = (time.time() - start2)*1000
+    assert time_ours < time_reference,\
+        "Took %4.4f ms. Time to beat: %4.4f ms." % (time_ours, time_reference)
 

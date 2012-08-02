@@ -47,6 +47,8 @@ def pack64(vector):
     See documentation in pack64_specs.txt.
     """
     vector = numpy.asarray(vector)
+    if not len(vector):
+        return 'A'
     highest = max(numpy.abs(vector))
     if numpy.isinf(highest) or numpy.isnan(highest):
         raise ValueError, 'Vector contains an invalid value.'
