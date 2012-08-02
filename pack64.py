@@ -47,29 +47,29 @@ def pack64(vector):
     See documentation in pack64_specs.txt.
     """
     highest = max(vector)
-    if numpy.isinf(highest) or numpy.isnan(highest) or highest > 2**40:
+    if np.isinf(highest) or np.isnan(highest) or highest > 2**40:
         raise ValueError, 'Vector contains an invalid value.'
     a = int(math.ceil(math.log(highest + 1, 2)))
     exponent = max(a-17, -40)
     increment = 2**exponent
     first = exponent + 40
     vector /= float(increment)
-    # TODO: use numpy operations to make this faster
+    # TODO: use np operations to make this faster
     encoded = [twosComplementEncode(value) for value in vector]
     return chars[first] + ''.join(encoded)
 
 
 def unpack64(string):
     """
-    Decode the given string (encoded from pack64) into a numpy array.
+    Decode the given string (encoded from pack64) into a np array.
     See documentation in pack64_specs.txt.
     """
     increment = 2**(chars_to_indices[string[0]] - 40)
-    numbers = numpy.array([chars_to_indices[s] for s in string[1:]])
+    numbers = np.array([chars_to_indices[s] for s in string[1:]])
     highplace = numbers[::3]
     midplace = numbers[1::3]
     lowplace = numbers[2::3]
     values = 4096*highplace + 64*midplace + lowplace
-    # TODO: use numpy operations to make this faster
+    # TODO: use np operations to make this faster
     values = [x if x<=131071 else x-262144 for x in values]
-    return numpy.array(values) * increment
+    return np.array(values) * increment
