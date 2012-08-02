@@ -9,7 +9,8 @@ chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
 
 def twosComplementEncode(number):
     """
-    Given an integer, return a three-character string representing it.
+    Given a number, return a three-character string representing
+    (the integer part of) it.
     See documentation in pack64_specs.txt.
     """
     if number > 131071: # that's 2^17 - 1
@@ -45,18 +46,16 @@ def pack64(vector):
     Return a string encoding of the given numpy array.
     See documentation in pack64_specs.txt.
     """
-    for value in vector:
-        if numpy.isinf(value) or numpy.isnan(value) or value > 2**40:
-            raise ValueError, 'Vector contains an invalid value.'
     highest = max(vector)
+    if numpy.isinf(highest) or numpy.isnan(highest) or highest > 2**40:
+        raise ValueError, 'Vector contains an invalid value.'
     a = int(math.ceil(math.log(highest + 1, 2)))
     exponent = max(a-17, -40)
     increment = 2**exponent
     first = exponent + 40
-    encoded = [None for value in vector]
-    for (index, value) in enumerate(vector):
-        string = twosComplementEncode(int(value / increment))
-        encoded[index] = string
+    vector /= float(increment)
+    # TODO: use numpy operations to make this faster
+    encoded = [twosComplementEncode(value) for value in vector]
     return chars[first] + ''.join(encoded)
 
 
@@ -66,6 +65,11 @@ def unpack64(string):
     See documentation in pack64_specs.txt.
     """
     increment = 2**(chars_to_indices[string[0]] - 40)
-    values = [twosComplementDecode(string[i:i+3]) * increment \
-              for i in xrange(1,3,len(string)-1)]
-    return numpy.array(values)
+    numbers = numpy.array([chars_to_indices[s] for s in string[1:]])
+    highplace = numbers[::3]
+    midplace = numbers[1::3]
+    lowplace = numbers[2::3]
+    values = 4096*highplace + 64*midplace + lowplace
+    # TODO: use numpy operations to make this faster
+    values = [x if x<=131071 else x-262144 for x in values]
+    return numpy.array(values) * increment
