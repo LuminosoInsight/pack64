@@ -3,6 +3,8 @@ import math
 
 # reimplementation of Rob's numpy-array-packing thing.
 
+#from csc_utils.vector import pack64, unpack64
+
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
@@ -22,9 +24,9 @@ def twosComplementEncode(number):
         number += 262144 # that's 32*(64^2) + 2^17
     # integer-division
     first = number / 4096
-    firstval = 4096 * first
-    second = firstval / 64
-    third = firstval - 64*second
+    without_firstval = number - 4096 * first
+    second = without_firstval / 64
+    third = without_firstval - 64*second
     return chars[first] + chars[second] + chars[third]
 
 def twosComplementDecode(string):
@@ -46,16 +48,22 @@ def pack64(vector):
     Return a string encoding of the given numpy array.
     See documentation in pack64_specs.txt.
     """
-    highest = max(vector)
+    highest = max(np.abs(vector))
     if np.isinf(highest) or np.isnan(highest) or highest > 2**40:
         raise ValueError, 'Vector contains an invalid value.'
-    a = int(math.ceil(math.log(highest + 1, 2)))
+    if not highest:
+        a = 0
+    elif not highest % 2:
+        a = int(math.log(highest, 2)) + 1
+    else:
+        a = int(math.ceil(math.log(highest, 2)))
+    print highest, '<', 2**a
     exponent = max(a-17, -40)
     increment = 2**exponent
     first = exponent + 40
-    vector /= float(increment)
+    newvector = vector / float(increment)
     # TODO: use np operations to make this faster
-    encoded = [twosComplementEncode(value) for value in vector]
+    encoded = [twosComplementEncode(value) for value in newvector]
     return chars[first] + ''.join(encoded)
 
 
