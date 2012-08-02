@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
@@ -37,8 +37,8 @@ def twosComplementDecode(string):
     number = 4096 * chars_to_indices[string[0]] + \
                64 * chars_to_indices[string[1]] + \
                     chars_to_indices[string[2]]
-    if number > 131071:
-        number -= 262144
+    if number >= SIGN_BIT:
+        number -= SIGN_BIT*2
     return number
 
 def pack64(vector):
@@ -46,14 +46,14 @@ def pack64(vector):
     Return a string encoding of the given numpy array.
     See documentation in pack64_specs.txt.
     """
-    vector = np.asarray(vector)
-    highest = max(np.abs(vector))
-    if np.isinf(highest) or np.isnan(highest):
+    vector = numpy.asarray(vector)
+    highest = max(numpy.abs(vector))
+    if numpy.isinf(highest) or numpy.isnan(highest):
         raise ValueError, 'Vector contains an invalid value.'
     if not highest:
         lowest_unused_power = -40
     else:
-        lowest_unused_power = int(math.floor(math.log(highest, 2))) + 1
+        lowest_unused_power = int(math.floor(numpy.log2(highest))) + 1
         if lowest_unused_power > 40:
             raise OverflowError
     exponent = max(lowest_unused_power-17, -40)
@@ -65,16 +65,15 @@ def pack64(vector):
 
 def unpack64(string):
     """
-    Decode the given string (encoded from pack64) into a np array.
+    Decode the given string (encoded from pack64) into a numpy array.
     See documentation in pack64_specs.txt.
     """
     increment = 2**(chars_to_indices[string[0]] - 40)
-    numbers = np.array([chars_to_indices[s] for s in string[1:]])
+    numbers = numpy.array([chars_to_indices[s] for s in string[1:]])
     highplace = numbers[::3]
     midplace = numbers[1::3]
     lowplace = numbers[2::3]
     values = 4096*highplace + 64*midplace + lowplace
     signs = (values >= SIGN_BIT)
     values -= 2 * signs * SIGN_BIT
-    return np.array(values) * increment
-
+    return numpy.array(values) * increment
