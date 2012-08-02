@@ -50,17 +50,14 @@ def pack64(vector):
     See documentation in pack64_specs.txt.
     """
     vector = numpy.asarray(vector)
-    highest = max(numpy.abs(vector))
+    magnitudes = numpy.abs(vector)
+    highest = max(magnitudes)
     if numpy.isinf(highest) or numpy.isnan(highest) or highest > 2**40:
         raise ValueError, 'Vector contains an invalid value.'
     if not highest:
         a = 0
-    elif (not highest % 2) or \
-         (highest < 2 and highest==2**int(math.log(highest,2))):
-        # special case for powers of two
-        a = int(math.log(highest, 2)) + 1
     else:
-        a = int(math.ceil(math.log(highest, 2)))
+        a = int(max(numpy.floor(numpy.log2(magnitudes)))) + 1
     print highest, '<', 2**a
     exponent = max(a-17, -40)
     increment = 2**exponent
