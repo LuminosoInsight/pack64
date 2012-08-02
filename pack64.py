@@ -57,7 +57,7 @@ def pack64(vector):
     if not highest:
         a = 0
     else:
-        a = int(max(numpy.floor(numpy.log2(magnitudes)))) + 1
+        a = int(numpy.floor(numpy.log2(highest))) + 1
     print highest, '<', 2**a
     exponent = max(a-17, -40)
     increment = 2**exponent
