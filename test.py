@@ -15,6 +15,14 @@ def test_random_vectors():
             # this is a vector we can't encode in the original system
             pass
 
+def test_specific_vectors():
+    yield encoding_check, [1.]
+    yield decoding_check, [1.]
+    yield encoding_check, [1., 2.]
+    yield decoding_check, [1., 2.]
+    yield encoding_check, [.5, .25]
+    yield decoding_check, [.5, .25]
+
 def encoding_check(vec):
     a = reference_pack64(vec)
     b = pack64(vec)
