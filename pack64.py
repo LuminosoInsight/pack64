@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 import math
 
 # reimplementation of Rob's numpy-array-packing thing.
@@ -8,6 +8,7 @@ import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
+
 
 def twosComplementEncode(number):
     """
@@ -21,7 +22,7 @@ def twosComplementEncode(number):
         raise ValueError, "Number too small to encode: %d" % number
     number = int(number)
     if number < 0:
-        number += 262144 # that's 32*(64^2) + 2^17
+        number += 262144 # that's 32*(64^2) + 2^17 = 2^18
     # integer-division
     first = number / 4096
     without_firstval = number - 4096 * first
@@ -48,8 +49,8 @@ def pack64(vector):
     Return a string encoding of the given numpy array.
     See documentation in pack64_specs.txt.
     """
-    highest = max(np.abs(vector))
-    if np.isinf(highest) or np.isnan(highest) or highest > 2**40:
+    highest = max(numpy.abs(vector))
+    if numpy.isinf(highest) or numpy.isnan(highest) or highest > 2**40:
         raise ValueError, 'Vector contains an invalid value.'
     if not highest:
         a = 0
@@ -62,22 +63,23 @@ def pack64(vector):
     increment = 2**exponent
     first = exponent + 40
     newvector = vector / float(increment)
-    # TODO: use np operations to make this faster
+ #   newvector = newvector.astype('int') # is there a faster way?
+    # TODO: use numpy operations to make this faster
     encoded = [twosComplementEncode(value) for value in newvector]
     return chars[first] + ''.join(encoded)
 
 
 def unpack64(string):
     """
-    Decode the given string (encoded from pack64) into a np array.
+    Decode the given string (encoded from pack64) into a numpy array.
     See documentation in pack64_specs.txt.
     """
     increment = 2**(chars_to_indices[string[0]] - 40)
-    numbers = np.array([chars_to_indices[s] for s in string[1:]])
-    highplace = numbers[::3]
-    midplace = numbers[1::3]
-    lowplace = numbers[2::3]
-    values = 4096*highplace + 64*midplace + lowplace
-    # TODO: use np operations to make this faster
+    numbers = numpy.array([chars_to_indices[s] for s in string[1:]])
+    # highplace = numbers[::3]
+    # midplace = numbers[1::3]
+    # lowplace = numbers[2::3]
+    values = 4096*numbers[::3] + 64*numbers[1::3] + numbers[2::3]
+    # TODO: use numpy operations to make this faster
     values = [x if x<=131071 else x-262144 for x in values]
-    return np.array(values) * increment
+    return numpy.array(values) * increment
