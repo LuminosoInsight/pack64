@@ -55,7 +55,9 @@ def pack64(vector):
         raise ValueError, 'Vector contains an invalid value.'
     if not highest:
         a = 0
-    elif not highest % 2:
+    elif (not highest % 2) or \
+         (highest < 2 and highest==2**int(math.log(highest,2))):
+        # special case for powers of two
         a = int(math.log(highest, 2)) + 1
     else:
         a = int(math.ceil(math.log(highest, 2)))
