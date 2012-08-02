@@ -16,6 +16,10 @@ def test_random_vectors():
             pass
 
 def test_specific_vectors():
+    yield encoding_check, [0., 0., 0.]
+    yield decoding_check, [0., 0., 0.]
+    yield encoding_check, [-1.]
+    yield decoding_check, [-1.]
     yield encoding_check, [1.]
     yield decoding_check, [1.]
     yield encoding_check, [1., 2.]
