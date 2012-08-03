@@ -3,7 +3,7 @@ import sys
 
 setup(
     name="pack64",
-    version = '0.1',
+    version = '1.0',
     maintainer='Luminoso, LLC',
     maintainer_email='dev@lumino.so',
     license = "MIT",
