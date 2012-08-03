@@ -65,8 +65,9 @@ This encoding can represent positive, negative, or zero values, with
 magnitudes from 2^-40 to approximately 2^40, as long as the other
 values in the vector are comparable in magnitude.
 
-If the vector contains infinity, NaN, or an entry of magnitude 2^40 or
-greater, this should raise a ValueError.
+If the vector contains infinity or NaN, then this will raise a ValueError; you
+probably don't want to transmit that sort of meaningless vector. If it contains
+an entry of magnitude 2^40 or greater, it raises an OverflowError.
 
 unpack64
 --------
