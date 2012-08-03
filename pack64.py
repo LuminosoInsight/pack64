@@ -8,7 +8,7 @@ chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
 # complement encoding. The minimum integer that can be represented in such an
 # encoding is -SIGN_BIT, and the maximum is SIGN_BIT - 1.
 SIGN_BIT = 131072
-
+ROUND_MARGIN = SIGN_BIT/(SIGN_BIT-0.5)
 def twosComplementEncode(number, round=True):
     """
     Given a number, return a three-character string representing
@@ -24,7 +24,7 @@ def twosComplementEncode(number, round=True):
         number = int(numpy.round(number))
     else:
         number = int(number)
-    assert -SIGN_BIT <= number < (SIGN_BIT - 1), "Integer out of range: %d" % number
+    assert -SIGN_BIT <= number < SIGN_BIT, "Integer out of range: %d" % number
     if number < 0:
         number += SIGN_BIT * 2
     
@@ -62,6 +62,10 @@ def pack64(vector, round=True):
     if not len(vector):
         return 'A'
     highest = max(numpy.abs(vector))
+    if round:
+        # If we're going to round off integers, we must take into account the
+        # case where we might round up to a power of 2.
+        highest *= ROUND_MARGIN
     if numpy.isinf(highest) or numpy.isnan(highest):
         raise ValueError, 'Vector contains an invalid value.'
     if not highest:

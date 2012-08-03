@@ -23,6 +23,10 @@ def test_encoding():
     assert pack64([1.]) == 'YQAA'
     assert pack64([-1., 1.]) == 'YwAAQAA'
     assert pack64([2.**16, -1.]) == 'oQAA___'
+    assert pack64([2.**16, 2**17-1]) == 'oQAAf__'
+    assert pack64([2.**16, 2**17-0.2], round=False) == 'oQAAf__'
+    assert pack64([2.**16, 2**17-0.2]) == 'pIAAQAA'
+    assert pack64([2.**16, -2**17+0.2]) == 'pIAAwAA'
     assert pack64([2.**20, -1.]) == 'sQAAAAA'
 
 def round_trip_check(vec):
