@@ -41,7 +41,7 @@ def test_specific_vectors():
 
 def encoding_check(vec):
     a = reference_pack64(vec)
-    b = pack64(vec)
+    b = pack64(vec, round=False)
     assert a == b,\
             '%s should have encoded to %s, got %s' % (vec, a, b)
 

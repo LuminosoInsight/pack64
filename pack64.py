@@ -9,14 +9,21 @@ chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
 # encoding is -SIGN_BIT, and the maximum is SIGN_BIT - 1.
 SIGN_BIT = 131072
 
-def twosComplementEncode(number):
+def twosComplementEncode(number, round=True):
     """
     Given a number, return a three-character string representing
-    (the integer part of) it, as 18-bit two's complement.
+    it (rounded to the nearest int), as 18-bit two's complement.
+
+    When `round` is True (default), this rounds to the nearest integer to
+    maximize precision. When `round` is False, it truncates for compatibility
+    with previous versions.
 
     See documentation in pack64/README.markdown.
     """
-    number = int(number)
+    if round:
+        number = int(numpy.round(number))
+    else:
+        number = int(number)
     assert -SIGN_BIT <= number < (SIGN_BIT - 1), "Integer out of range: %d" % number
     if number < 0:
         number += SIGN_BIT * 2
@@ -42,10 +49,14 @@ def twosComplementDecode(string):
         number -= SIGN_BIT*2
     return number
 
-def pack64(vector):
+def pack64(vector, round=True):
     """
     Returns a compact string encoding that approximates the given NumPy
     vector. See the documentation in pack64/README.markdown.
+    
+    When `round` is True (default), this rounds to the nearest representable
+    value, to maximize precision. When `round` is False, it truncates, for
+    compatibility with previous versions.
     """
     vector = numpy.asarray(vector)
     if not len(vector):
@@ -63,7 +74,7 @@ def pack64(vector):
     increment = 2**exponent
     first = exponent + 40
     newvector = vector / float(increment)
-    encoded = [twosComplementEncode(value) for value in newvector]
+    encoded = [twosComplementEncode(value, round) for value in newvector]
     return chars[first] + ''.join(encoded)
 
 def unpack64(string):
