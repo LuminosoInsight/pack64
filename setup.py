@@ -6,7 +6,7 @@ setup(
     version = '0.1',
     maintainer='Luminoso, LLC',
     maintainer_email='dev@lumino.so',
-    license = "Proprietary",
+    license = "MIT",
     url = 'http://github.com/LuminosoInsight/pack64',
     platforms = ["any"],
     description = "A library for encoding and decoding floating point vectors into a compact, base64-like format",
