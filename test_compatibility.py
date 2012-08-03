@@ -1,3 +1,12 @@
+"""
+This file tests that our pack64 and unpack64 functions are compatible with the
+versions in Commonsense Computing's csc_utils, which we often need to
+interoperate with.
+
+We reimplemented them from the specification to be sure that we could release
+pack64/unpack64 under the MIT license.
+"""
+
 from pack64 import pack64, unpack64
 from csc_utils.vector import pack64_check as reference_pack64, unpack64 as reference_unpack64
 import numpy as np

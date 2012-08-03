@@ -14,7 +14,7 @@ def twosComplementEncode(number):
     Given a number, return a three-character string representing
     (the integer part of) it, as 18-bit two's complement.
 
-    See documentation in pack64_specs.txt.
+    See documentation in pack64/README.markdown.
     """
     number = int(number)
     assert -SIGN_BIT <= number < (SIGN_BIT - 1), "Integer out of range: %d" % number
@@ -32,7 +32,8 @@ def twosComplementDecode(string):
     """
     Given a three-character string (encoded from twosComplementEncode),
     return the integer it represents.
-    See documentation in pack64_specs.txt.
+    
+    See documentation in pack64/README.markdown.
     """
     number = 4096 * chars_to_indices[string[0]] + \
                64 * chars_to_indices[string[1]] + \
@@ -43,8 +44,8 @@ def twosComplementDecode(string):
 
 def pack64(vector):
     """
-    Return a string encoding of the given numpy array.
-    See documentation in pack64_specs.txt.
+    Returns a compact string encoding that approximates the given NumPy
+    vector. See the documentation in pack64/README.markdown.
     """
     vector = numpy.asarray(vector)
     if not len(vector):
@@ -67,8 +68,10 @@ def pack64(vector):
 
 def unpack64(string):
     """
-    Decode the given string (encoded from pack64) into a numpy array.
-    See documentation in pack64_specs.txt.
+    Decode the given string (encoded from pack64) into a numpy array
+    of type `numpy.float32`.
+    
+    See documentation in pack64/README.markdown.
     """
     increment = 2**(chars_to_indices[string[0]] - 40)
     numbers = numpy.array([chars_to_indices[s] for s in string[1:]])
@@ -78,4 +81,4 @@ def unpack64(string):
     values = 4096*highplace + 64*midplace + lowplace
     signs = (values >= SIGN_BIT)
     values -= 2 * signs * SIGN_BIT
-    return numpy.array(values) * increment
+    return numpy.array(values, dtype=numpy.float32) * increment
