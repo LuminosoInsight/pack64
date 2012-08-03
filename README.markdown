@@ -1,6 +1,7 @@
 pack64
 ======
-Packs a NumPy vector into a kind-of-floating-point, kind-of-base64
+Pack64 is a vector encoding, with code for encoding and decoding it in Python
+and JavaScript. It packs a vector into a kind-of-floating-point, kind-of-base64
 representation, requiring only 3 bytes per vector entry.
 
 This is meant for transmitting vector data over a network, in a situation
@@ -26,7 +27,7 @@ pack64
 ------
 
 The `pack64` function returns a string *b* of bytes, representing digits using
-the URL-safe base64 character set (A-Z, a-z, 0-9, -, _), as follows:
+the URL-safe base64 character set `(A-Z, a-z, 0-9, -, _)`, as follows:
 
 * b[0] contains the power-of-two exponent, biased by 40. That is:
 
@@ -49,15 +50,15 @@ the URL-safe base64 character set (A-Z, a-z, 0-9, -, _), as follows:
   big-endian, twos-complement integers, which will all be multiplied by
   the increment. That is:
 
-    - AAA represents 0.
-    - AAB represents 1.
-    - AAC represents 2.
-    - ___ represents -1.
-    - __- represents -2.
-    - f__ represents the highest possible value, (2^17 - 1).
-    - gAA represents the lowest possible value, -(2^17).
+    - `AAA` represents 0.
+    - `AAB` represents 1.
+    - `AAC` represents 2.
+    - `___` represents -1.
+    - `__-` represents -2.
+    - `f__` represents the highest possible value, (2^17 - 1).
+    - `gAA` represents the lowest possible value, -(2^17).
   
-The last value will be found in b[3*K-2 : 3*K+1], so the length of the
+The last value will be found in `b[3*K-2 : 3*K+1]`, so the length of the
 string overall will be 3*K + 1.
 
 This encoding can represent positive, negative, or zero values, with
@@ -69,11 +70,14 @@ greater, this should raise a ValueError.
 
 unpack64
 --------
-Unpacks a NumPy vector that has been encoded with the pack64 function.
+Unpacks a vector that has been encoded with the pack64 function.
 
-Takes in a string of 3n+1 URL-safe base64 characters, and returns a NumPy
-np.float32 vector of length n, such that `unpack64(pack64(vec))` is equal
+Takes in a string of 3n+1 URL-safe base64 characters, and returns a
+vector of length n, such that `unpack64(pack64(vec))` is equal
 to `vec` within five significant digits of precision.
+ 
+In Python, this returns a NumPy vector of dtype `np.float32`. In JavaScript, it
+returns a standard array of numbers.
 
 Precision
 =========
