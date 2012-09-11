@@ -1,9 +1,8 @@
 from setuptools import setup
-import sys
 
 setup(
     name="pack64",
-    version = '1.0',
+    version = '1.0.1',
     maintainer='Luminoso, LLC',
     maintainer_email='dev@lumino.so',
     license = "MIT",
@@ -11,6 +10,5 @@ setup(
     platforms = ["any"],
     description = "A library for encoding and decoding floating point vectors into a compact, base64-like format",
     py_modules=['pack64'],
-    install_requires=['numpy',
-                     ],
+    install_requires=['numpy'],
 )

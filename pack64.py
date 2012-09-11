@@ -22,7 +22,7 @@ import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 base64_array = numpy.chararray((64,), buffer=chars)
-chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
+chars_to_indices = dict([(chars[i], i) for i in xrange(64)])
 
 # This constant is 2^17, the value that represents the sign in an 18-bit two's
 # complement encoding. The minimum integer that can be represented in such an
