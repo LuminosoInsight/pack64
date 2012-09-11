@@ -1,7 +1,27 @@
+"""
+Pack64 is a vector encoding, with code for encoding and decoding it in Python
+and JavaScript. It packs a vector into a kind-of-floating-point, kind-of-base64
+representation, requiring only 3 bytes per vector entry.
+
+This is meant for transmitting vector data over a network, in a situation
+where:
+
+* Arbitrary bytes can't be transmitted
+* We need to send the vector in as few bytes as possible
+* Simply base64-encoding floating-point data -- at 5.33 bytes per entry --
+  isn't small enough
+* A loss of precision is acceptable, as long as the properties of the vector
+  remain the same
+
+Possible applications include rapidly updating a vector using STOMP, or
+encoding a vector in a URL.
+"""
+
 import numpy
 import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+base64_array = numpy.chararray((64,), buffer=chars)
 chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
 
 # This constant is 2^17, the value that represents the sign in an 18-bit two's
@@ -9,18 +29,21 @@ chars_to_indices = dict([(chars[i],i) for i in xrange(64)])
 # encoding is -SIGN_BIT, and the maximum is SIGN_BIT - 1.
 SIGN_BIT = 131072
 ROUND_MARGIN = SIGN_BIT/(SIGN_BIT-0.5)
-def twosComplementEncode(number, round=True):
+def twosComplementEncode(number, rounded=True):
     """
     Given a number, return a three-character string representing
     it (rounded to the nearest int), as 18-bit two's complement.
 
-    When `round` is True (default), this rounds to the nearest integer to
-    maximize precision. When `round` is False, it truncates for compatibility
+    When `rounded` is True (default), this rounds to the nearest integer to
+    maximize precision. When `rounded` is False, it truncates for compatibility
     with previous versions.
+
+    This function is not used by pack64; pack64 does a faster in-place version
+    that is equivalent.
 
     See documentation in pack64/README.markdown.
     """
-    if round:
+    if rounded:
         number = int(numpy.round(number))
     else:
         number = int(number)
@@ -49,20 +72,20 @@ def twosComplementDecode(string):
         number -= SIGN_BIT*2
     return number
 
-def pack64(vector, round=True):
+def pack64(vector, rounded=True):
     """
     Returns a compact string encoding that approximates the given NumPy
     vector. See the documentation in pack64/README.markdown.
     
-    When `round` is True (default), this rounds to the nearest representable
-    value, to maximize precision. When `round` is False, it truncates, for
+    When `rounded` is True (default), this rounds to the nearest representable
+    value, to maximize precision. When `rounded` is False, it truncates, for
     compatibility with previous versions.
     """
     vector = numpy.asarray(vector)
     if not len(vector):
         return 'A'
     highest = max(numpy.abs(vector))
-    if round:
+    if rounded:
         # If we're going to round off integers, we must take into account the
         # case where we might round up to a power of 2.
         highest *= ROUND_MARGIN
@@ -77,9 +100,21 @@ def pack64(vector, round=True):
     exponent = max(lowest_unused_power-17, -40)
     increment = 2**exponent
     first = exponent + 40
-    newvector = vector / float(increment)
-    encoded = [twosComplementEncode(value, round) for value in newvector]
-    return chars[first] + ''.join(encoded)
+    if rounded:
+        newvector = numpy.round(vector / float(increment)).astype(numpy.int)
+    else:
+        newvector = (vector / float(increment)).astype(numpy.int)
+    
+    # do the two's complement encoding in place, across the entire vector
+    length = 3*len(newvector) + 1
+    digits = numpy.zeros((length,)).astype(numpy.int)
+    digits[0] = first
+    digits[1::3] = (newvector >> 12) % 64
+    digits[2::3] = (newvector >> 6) % 64
+    digits[3::3] = (newvector % 64)
+
+    encoded = base64_array[digits]
+    return encoded.tostring()
 
 def unpack64(string):
     """
