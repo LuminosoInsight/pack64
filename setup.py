@@ -10,5 +10,9 @@ setup(
     platforms = ["any"],
     description = "A library for encoding and decoding floating point vectors into a compact, base64-like format",
     py_modules=['pack64'],
-    install_requires=['numpy'],
+
+    # This package additionally requires NumPy, but will not try to
+    # auto-install it.
+
+    #install_requires=['numpy'],
 )
