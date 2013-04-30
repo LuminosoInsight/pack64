@@ -21,8 +21,8 @@ import numpy
 import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-base64_array = numpy.chararray((64,), buffer=chars)
-chars_to_indices = dict([(chars[i], i) for i in xrange(64)])
+base64_array = numpy.chararray((64,), buffer=chars.encode('ascii'))
+chars_to_indices = dict([(chars[i], i) for i in range(64)])
 
 # This constant is 2^17, the value that represents the sign in an 18-bit two's
 # complement encoding. The minimum integer that can be represented in such an
@@ -90,7 +90,7 @@ def pack64(vector, rounded=True):
         # case where we might round up to a power of 2.
         highest *= ROUND_MARGIN
     if numpy.isinf(highest) or numpy.isnan(highest):
-        raise ValueError, 'Vector contains an invalid value.'
+        raise ValueError('Vector contains an invalid value.')
     if not highest:
         lowest_unused_power = -40
     else:
@@ -114,7 +114,7 @@ def pack64(vector, rounded=True):
     digits[3::3] = (newvector % 64)
 
     encoded = base64_array[digits]
-    return encoded.tostring()
+    return encoded.tostring().decode('ascii')
 
 def unpack64(string):
     """
