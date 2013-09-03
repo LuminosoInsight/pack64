@@ -22,6 +22,7 @@ import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 base64_array = numpy.chararray((64,), buffer=chars)
+base64_array = numpy.chararray((64,), buffer=chars.encode('ascii'))
 chars_to_indices = dict([(chars[i], i) for i in range(64)])
 
 # This constant is 2^17, the value that represents the sign in an 18-bit two's
@@ -116,7 +117,7 @@ def pack64(vector, rounded=True):
     digits[3::3] = (newvector % 64)
 
     encoded = base64_array[digits]
-    return encoded.tostring()
+    return encoded.tostring().decode('ascii')
 
 def unpack64(string):
     """
