@@ -22,13 +22,15 @@ import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 base64_array = numpy.chararray((64,), buffer=chars)
-chars_to_indices = dict([(chars[i], i) for i in xrange(64)])
+chars_to_indices = dict([(chars[i], i) for i in range(64)])
 
 # This constant is 2^17, the value that represents the sign in an 18-bit two's
 # complement encoding. The minimum integer that can be represented in such an
 # encoding is -SIGN_BIT, and the maximum is SIGN_BIT - 1.
 SIGN_BIT = 131072
-ROUND_MARGIN = SIGN_BIT/(SIGN_BIT-0.5)
+ROUND_MARGIN = SIGN_BIT / (SIGN_BIT-0.5)
+
+
 def twosComplementEncode(number, rounded=True):
     """
     Given a number, return a three-character string representing
@@ -50,7 +52,7 @@ def twosComplementEncode(number, rounded=True):
     assert -SIGN_BIT <= number < SIGN_BIT, "Integer out of range: %d" % number
     if number < 0:
         number += SIGN_BIT * 2
-    
+
     # using // for forward-compatible integer division
     first = number // 4096
     without_firstval = number - 4096 * first
@@ -62,12 +64,12 @@ def twosComplementDecode(string):
     """
     Given a three-character string (encoded from twosComplementEncode),
     return the integer it represents.
-    
+
     See documentation in pack64/README.markdown.
     """
-    number = 4096 * chars_to_indices[string[0]] + \
-               64 * chars_to_indices[string[1]] + \
-                    chars_to_indices[string[2]]
+    number = (4096 * chars_to_indices[string[0]]
+              + 64 * chars_to_indices[string[1]]
+              + chars_to_indices[string[2]])
     if number >= SIGN_BIT:
         number -= SIGN_BIT*2
     return number
@@ -76,7 +78,7 @@ def pack64(vector, rounded=True):
     """
     Returns a compact string encoding that approximates the given NumPy
     vector. See the documentation in pack64/README.markdown.
-    
+
     When `rounded` is True (default), this rounds to the nearest representable
     value, to maximize precision. When `rounded` is False, it truncates, for
     compatibility with previous versions.
@@ -90,23 +92,23 @@ def pack64(vector, rounded=True):
         # case where we might round up to a power of 2.
         highest *= ROUND_MARGIN
     if numpy.isinf(highest) or numpy.isnan(highest):
-        raise ValueError, 'Vector contains an invalid value.'
+        raise ValueError('Vector contains an invalid value.')
     if not highest:
         lowest_unused_power = -40
     else:
         lowest_unused_power = int(math.floor(numpy.log2(highest))) + 1
         if lowest_unused_power > 40:
             raise OverflowError
-    exponent = max(lowest_unused_power-17, -40)
+    exponent = max(lowest_unused_power - 17, -40)
     increment = 2**exponent
     first = exponent + 40
     if rounded:
         newvector = numpy.round(vector / float(increment)).astype(numpy.int)
     else:
         newvector = (vector / float(increment)).astype(numpy.int)
-    
+
     # do the two's complement encoding in place, across the entire vector
-    length = 3*len(newvector) + 1
+    length = 3 * len(newvector) + 1
     digits = numpy.zeros((length,)).astype(numpy.int)
     digits[0] = first
     digits[1::3] = (newvector >> 12) % 64
@@ -120,7 +122,7 @@ def unpack64(string):
     """
     Decode the given string (encoded from pack64) into a numpy array
     of type `numpy.float32`.
-    
+
     See documentation in pack64/README.markdown.
     """
     increment = 2**(chars_to_indices[string[0]] - 40)

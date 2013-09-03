@@ -1,8 +1,8 @@
 pack64
 ======
-Pack64 is a vector encoding, with code for encoding and decoding it in Python
-and JavaScript. It packs a vector into a kind-of-floating-point, kind-of-base64
-representation, requiring only 3 bytes per vector entry.
+Pack64 is a vector encoding, with code for encoding and decoding it in Python,
+Ruby, and JavaScript. It packs a vector into a kind-of-floating-point,
+kind-of-base64 representation, requiring only 3 bytes per vector entry.
 
 This is meant for transmitting vector data over a network, in a situation
 where:
@@ -97,6 +97,8 @@ less.
 
 License
 =======
-(c) 2012 Luminoso, LLC. pack64 is released as free software under the MIT
-license. See LICENSE for the terms of the MIT license (there aren't many).
+
+(c) 2012-2013 Luminoso Technologies. pack64 is released as free software under
+the MIT license. See LICENSE for the terms of the MIT license (there aren't
+many).
 

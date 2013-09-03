@@ -2,7 +2,7 @@ from pack64 import pack64, unpack64
 import numpy as np
 
 def test_random_vectors():
-    for iter in xrange(900):
+    for iter in range(900):
         magnitude = pow(2., (iter-500)/10.)
         length = (iter % 10) + 1
         vec = np.random.normal(size=(length,)) * magnitude
