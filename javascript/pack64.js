@@ -19,7 +19,7 @@
 })('pack64', this, function () {
     "use strict";
 
-    /* 2^17 is the number that makes an 18-bit signed integer go negative. */
+    // 2^17 is the number that makes an 18-bit signed integer go negative.
     var SIGN_BIT = 131072;
     var ROUND_MARGIN = SIGN_BIT / (SIGN_BIT - 0.5);
 
