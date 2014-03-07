@@ -34,9 +34,9 @@
         // The exponent we want will be 17 lower than that.
         var max = 0, i;
         for (i = 0; i < vec.length; i++) {
-            var v = Math.abs(vec[i]);
+            var v = Math.abs(vec[i]) * ROUND_MARGIN;
             if (v > max) {
-                max = v * ROUND_MARGIN;
+                max = v;
             }
         }
 
