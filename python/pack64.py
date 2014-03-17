@@ -21,7 +21,6 @@ import numpy
 import math
 
 chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-base64_array = numpy.chararray((64,), buffer=chars)
 base64_array = numpy.chararray((64,), buffer=chars.encode('ascii'))
 chars_to_indices = dict([(chars[i], i) for i in range(64)])
 
