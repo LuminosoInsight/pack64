@@ -2,9 +2,9 @@ from setuptools import setup
 
 setup(
     name="pack64",
-    version = '1.0.2',
-    maintainer='Luminoso, LLC',
-    maintainer_email='dev@lumino.so',
+    version = '1.0.3',
+    maintainer='Luminoso Technologies, Inc.',
+    maintainer_email='dev@luminoso.com',
     license = "MIT",
     url = 'http://github.com/LuminosoInsight/pack64',
     platforms = ["any"],
