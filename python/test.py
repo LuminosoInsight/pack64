@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import numpy as np
 from nose.tools import assert_raises, eq_
 
@@ -104,12 +106,12 @@ def test_errors():
     _check([-(2.0 ** 17 - 0.6) * 2.0 ** 23], expected='_gAB')
 
     # Strings with bad lengths or characters are rejected
-    for string in ('', b'', 'xx', b'xx', '🐼', b'Hey!', 'panda', 'rutabaga'):
+    for string in ('', 'xx', b'xx', '\U0001f43c', 'Hey!', 'panda', 'rutabaga'):
         with assert_raises(ValueError):
             unpack64(string)
 
     # Some (but not all) bad strings are accepted if error checking is disabled
-    for string in ('xx', b'Hey!', 'panda'):
+    for string in ('xx', 'Hey!', 'panda'):
         unpack64(string, check=False)
     with assert_raises(ValueError):
         unpack64('rutabaga', check=False)
