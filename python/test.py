@@ -32,8 +32,8 @@ def _check(vector, expected=None, exact=False):
         #   * The largest magnitude entry may be rounded for packing in such a
         #     way that the precision is slightly less than that guarantee.
         #   * The smallest positive number that can be packed at all is
-        #     2 ** -40, so the precision guarantee for very small entries is
-        #     instead half of this value.
+        #     2 ** -40, so the absolute precision available for very small
+        #     vectors, regardless of the size of the vector, is 2 ** -41.
         tolerance = max(np.max(np.abs(vector)) / (2.0 ** 17 - 0.5), 2.0 ** -41)
     assert deviation <= tolerance
     return deviation, tolerance
