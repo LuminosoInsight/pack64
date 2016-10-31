@@ -48,7 +48,7 @@ def pack64(vector):
     largest_entry = np.max(np.abs(vector))
     if not np.isfinite(largest_entry):
         raise ValueError('Vector contains an invalid value.')
-    if not largest_entry:
+    if not largest_entry:  # Remarkably, using == here is measurably slower
         biased_exponent = 0
     else:
         biased_exponent = max(math.frexp(float(largest_entry) / EPSILON)[1], 0)
