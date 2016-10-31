@@ -28,12 +28,12 @@ character set `(A-Z, a-z, 0-9, -, _)`, as follows:
 
 * b[0] contains the power-of-two exponent, biased by 40.  That is:
 
-    - An exponent of 0 ("A") means to multiply all the integers that follow by
+    - An exponent of 0 (`A`) means to multiply all the integers that follow by
       2^-40.
-    - An exponent of 30 ("e") means to multiply the integers by 2^-10 (that is,
+    - An exponent of 30 (`e`) means to multiply the integers by 2^-10 (that is,
       divide them by 1024).
-    - An exponent of 40 ("o") means to leave the integers as is.
-    - An exponent of 63 ("_") means to multiply the integers by 2^23.
+    - An exponent of 40 (`o`) means to leave the integers as is.
+    - An exponent of 63 (`_`) means to multiply the integers by 2^23.
 
   Call this number 2^(b[0] - 40) the *increment*.
 
