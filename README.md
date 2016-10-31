@@ -61,7 +61,7 @@ overall will be 3*K + 1.
 
 This encoding can represent positive, negative, or zero values with magnitudes
 from 2^-40 to approximately 2^40.  It cannot represent inf or nan, and encoders
-should report an error when those are encoutered; you probably don't want to
+should report an error when those are encountered; you probably don't want to
 transmit them in a vector anyhow.  Encoders should likewise report an error if
 they encounter values of magnitude 2^40 or greater.
 
