@@ -1,136 +1,79 @@
-"""
-Pack64 is a vector encoding, with code for encoding and decoding it in Python
-and JavaScript. It packs a vector into a kind-of-floating-point, kind-of-base64
-representation, requiring only 3 bytes per vector entry.
+'''
+Pack64 is a vector encoding using a kind-of-floating-point, kind-of-base64
+representation requiring only 3 bytes per vector entry.  This Python module
+provides functions for encoding and decoding pack64 vectors.
+'''
 
-This is meant for transmitting vector data over a network, in a situation
-where:
+__all__ = ['pack64', 'unpack64']
 
-* Arbitrary bytes can't be transmitted
-* We need to send the vector in as few bytes as possible
-* Simply base64-encoding floating-point data -- at 5.33 bytes per entry --
-  isn't small enough
-* A loss of precision is acceptable, as long as the properties of the vector
-  remain the same
-
-Possible applications include rapidly updating a vector using STOMP, or
-encoding a vector in a URL.
-"""
-
-import numpy
 import math
-
-chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-base64_array = numpy.chararray((64,), buffer=chars.encode('ascii'))
-chars_to_indices = dict([(chars[i], i) for i in range(64)])
-
-# This constant is 2^17, the value that represents the sign in an 18-bit two's
-# complement encoding. The minimum integer that can be represented in such an
-# encoding is -SIGN_BIT, and the maximum is SIGN_BIT - 1.
-SIGN_BIT = 131072
-ROUND_MARGIN = SIGN_BIT / (SIGN_BIT-0.5)
+import numpy as np
 
 
-def twosComplementEncode(number, rounded=True):
-    """
-    Given a number, return a three-character string representing
-    it (rounded to the nearest int), as 18-bit two's complement.
+# The characters used in encoding, in order; various derived lookup tables
+CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+DIGIT_TO_CHAR = np.fromstring(CHARS, dtype=np.uint8)
+CHAR_TO_DIGIT = np.full((128,), -1, dtype=np.int)
+CHAR_TO_DIGIT[DIGIT_TO_CHAR] = np.arange(64)
+VALID_CHARS = set(CHARS) | set(CHARS.encode('ascii'))
 
-    When `rounded` is True (default), this rounds to the nearest integer to
-    maximize precision. When `rounded` is False, it truncates for compatibility
-    with previous versions.
+# The smallest positive number that cannot be encoded with a biased exponent of
+# zero.  We determine the exponent by comparing the largest number in the
+# vector with this one.  Note the offset of 0.5 due to rounding.
+EPSILON = (2.0 ** 17 - 0.5) * 2.0 ** -40
 
-    This function is not used by pack64; pack64 does a faster in-place version
-    that is equivalent.
+# On rounding error: because we do not directly check that the packed values
+# fit in 18 bits, a rounding error in calculating the exponent could cause a
+# large error in the result.  Fortunately, this calculation should be exact
+# despite using floating point arithmetic.  frexp() is exact, and the output
+# should transition at EPSILON times powers of two, so it is sufficient to
+# check that the input to frexp() is exact at these values.  Because all such
+# values are a small integer times a power of two, they can be represented
+# exactly and produce exact results when divided by EPSILON.
 
-    See documentation in pack64/README.markdown.
-    """
-    if rounded:
-        number = int(numpy.round(number))
-    else:
-        number = int(number)
-    assert -SIGN_BIT <= number < SIGN_BIT, "Integer out of range: %d" % number
-    if number < 0:
-        number += SIGN_BIT * 2
+# On negative numbers: we never emit the string 'gAA', for -(2 ** 17).  Doing
+# so would allow us to encode a small number of vectors with greater precision,
+# but it doesn't seem worth the effort.
 
-    # using // for forward-compatible integer division
-    first = number // 4096
-    without_firstval = number - 4096 * first
-    second = without_firstval // 64
-    third = without_firstval - 64*second
-    return chars[first] + chars[second] + chars[third]
 
-def twosComplementDecode(string):
-    """
-    Given a three-character string (encoded from twosComplementEncode),
-    return the integer it represents.
-
-    See documentation in pack64/README.markdown.
-    """
-    number = (4096 * chars_to_indices[string[0]]
-              + 64 * chars_to_indices[string[1]]
-              + chars_to_indices[string[2]])
-    if number >= SIGN_BIT:
-        number -= SIGN_BIT*2
-    return number
-
-def pack64(vector, rounded=True):
-    """
-    Returns a compact string encoding that approximates the given NumPy
-    vector. See the documentation in pack64/README.markdown.
-
-    When `rounded` is True (default), this rounds to the nearest representable
-    value, to maximize precision. When `rounded` is False, it truncates, for
-    compatibility with previous versions.
-    """
-    vector = numpy.asarray(vector)
+def pack64(vector):
+    '''
+    Encode the given vector, returning a string.  Accepts any object that can
+    be converted to a NumPy float array.
+    '''
     if not len(vector):
         return 'A'
-    highest = max(numpy.abs(vector))
-    if rounded:
-        # If we're going to round off integers, we must take into account the
-        # case where we might round up to a power of 2.
-        highest *= ROUND_MARGIN
-    if numpy.isinf(highest) or numpy.isnan(highest):
+    vector = np.asarray(vector)
+
+    largest_entry = np.max(np.abs(vector))
+    if not np.isfinite(largest_entry):
         raise ValueError('Vector contains an invalid value.')
-    if not highest:
-        lowest_unused_power = -40
+    if not largest_entry:  # Remarkably, using == here is measurably slower
+        biased_exponent = 0
     else:
-        lowest_unused_power = int(math.floor(numpy.log2(highest))) + 1
-        if lowest_unused_power > 40:
-            raise OverflowError
-    exponent = max(lowest_unused_power - 17, -40)
-    increment = 2**exponent
-    first = exponent + 40
-    if rounded:
-        newvector = numpy.round(vector / float(increment)).astype(numpy.int)
-    else:
-        newvector = (vector / float(increment)).astype(numpy.int)
+        biased_exponent = max(math.frexp(float(largest_entry) / EPSILON)[1], 0)
+        if biased_exponent > 63:
+            raise OverflowError('Vector has an entry too large to encode.')
 
-    # do the two's complement encoding in place, across the entire vector
-    length = 3 * len(newvector) + 1
-    digits = numpy.zeros((length,)).astype(numpy.int)
-    digits[0] = first
-    digits[1::3] = (newvector >> 12) % 64
-    digits[2::3] = (newvector >> 6) % 64
-    digits[3::3] = (newvector % 64)
+    values = np.round(vector * 0.5 ** (biased_exponent - 40)).astype(np.int)
+    digits = np.empty((3 * len(values) + 1,), dtype=np.int)
+    digits[0] = biased_exponent
+    digits[1::3] = values >> 12
+    digits[2::3] = values >> 6
+    digits[3::3] = values
+    digits &= 63
+    return DIGIT_TO_CHAR[digits].tobytes().decode('ascii')
 
-    encoded = base64_array[digits]
-    return encoded.tostring().decode('ascii')
 
-def unpack64(string):
-    """
-    Decode the given string (encoded from pack64) into a numpy array
-    of type `numpy.float32`.
-
-    See documentation in pack64/README.markdown.
-    """
-    increment = 2**(chars_to_indices[string[0]] - 40)
-    numbers = numpy.array([chars_to_indices[s] for s in string[1:]])
-    highplace = numbers[::3]
-    midplace = numbers[1::3]
-    lowplace = numbers[2::3]
-    values = 4096*highplace + 64*midplace + lowplace
-    signs = (values >= SIGN_BIT)
-    values -= 2 * signs * SIGN_BIT
-    return numpy.array(values, dtype=numpy.float32) * increment
+def unpack64(string, check=True):
+    '''
+    Decode the given string, returning a NumPy array of dtype float32.
+    Optionally pass check=False to disable input validation, for circumstances
+    where you are sure the input is a properly packed vector.
+    '''
+    if check and (len(string) % 3 != 1 or not VALID_CHARS.issuperset(string)):
+        raise ValueError('Cannot decode string %r' % string)
+    digits = CHAR_TO_DIGIT[np.fromstring(string, dtype=np.uint8)]
+    values = (digits[1::3] << 12) + (digits[2::3] << 6) + digits[3::3]
+    values -= (values >> 17) << 18
+    return values.astype(np.float32) * 2.0 ** (digits[0] - 40)
