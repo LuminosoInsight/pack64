@@ -59,11 +59,12 @@ character set `(A-Z, a-z, 0-9, -, _)`, as follows:
 The last value will be found in `b[3*K-2:3*K+1]`, so the length of the string
 overall will be 3*K + 1.
 
-This encoding can represent positive, negative, or zero values with magnitudes
-from 2^-40 to approximately 2^40.  It cannot represent inf or nan, and encoders
-should report an error when those are encountered; you probably don't want to
-transmit them in a vector anyhow.  Encoders should likewise report an error if
-they encounter values of magnitude 2^40 or greater.
+This encoding can represent values in the range [-2^40, 2^40 - 2^23], with
+granularity potentially as small as 2^-40.  It cannot represent inf or nan, and
+encoders should report an error when those are encountered; you probably don't
+want to transmit them in a vector anyhow.  Encoders should likewise report an
+error if they encounter values outside the representable range, which may, for
+speed, include -2^40 itself.
 
 unpack64
 --------
