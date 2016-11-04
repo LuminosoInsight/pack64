@@ -48,12 +48,9 @@ def pack64(vector):
     largest_entry = np.max(np.abs(vector))
     if not np.isfinite(largest_entry):
         raise ValueError('Vector contains an invalid value.')
-    if not largest_entry:  # Remarkably, using == here is measurably slower
-        biased_exponent = 0
-    else:
-        biased_exponent = max(math.frexp(float(largest_entry) / EPSILON)[1], 0)
-        if biased_exponent > 63:
-            raise OverflowError('Vector has an entry too large to encode.')
+    biased_exponent = max(math.frexp(float(largest_entry) / EPSILON)[1], 0)
+    if biased_exponent > 63:
+        raise OverflowError('Vector has an entry too large to encode.')
 
     values = np.round(vector * 0.5 ** (biased_exponent - 40)).astype(np.int)
     digits = np.empty((3 * len(values) + 1,), dtype=np.int)
