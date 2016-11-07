@@ -17,23 +17,43 @@ CHAR_TO_DIGIT = np.full((128,), -1, dtype=np.int)
 CHAR_TO_DIGIT[DIGIT_TO_CHAR] = np.arange(64)
 VALID_CHARS = set(CHARS) | set(CHARS.encode('ascii'))
 
-# The smallest positive number that cannot be encoded with a biased exponent of
-# zero.  We determine the exponent by comparing the largest number in the
-# vector with this one.  Note the offset of 0.5 due to rounding.
 EPSILON = (2.0 ** 17 - 0.5) * 2.0 ** -40
 
-# On rounding error: because we do not directly check that the packed values
-# fit in 18 bits, a rounding error in calculating the exponent could cause a
-# large error in the result.  Fortunately, this calculation should be exact
-# despite using floating point arithmetic.  frexp() is exact, and the output
-# should transition at EPSILON times powers of two, so it is sufficient to
-# check that the input to frexp() is exact at these values.  Because all such
-# values are a small integer times a power of two, they can be represented
-# exactly and produce exact results when divided by EPSILON.
+# EPSILON is used to determine the biased exponent emitted by pack64().  The
+# largest integer part that can be emitted is (2 ** 17 - 1), and hence the
+# largest number that can be emitted with a biased exponent of zero is
+# (2 ** 17 - 1) * (2 ** -40).  However, numbers slightly larger than this still
+# round down to this when encoded.  The smallest positive number that (rounded)
+# requires a biased exponent of 1 is EPSILON.  By extension, the smallest
+# number that requires a biased exponent of 2 is 2 * EPSILON, and so on.
 
-# On negative numbers: we never emit the string 'gAA', for -(2 ** 17).  Doing
-# so would allow us to encode a small number of vectors with greater precision,
-# but it doesn't seem worth the effort.
+# Thus, the biased exponent that should be used can be found by applying the
+# following rule to the magnitude L of the largest vector entry:
+#   If L is less than...            Set the biased exponent to ...
+#     EPSILON                         0
+#     2 * EPSILON                     1
+#     4 * EPSILON                     2
+#     ...                             ...
+# Or, put another way:
+#   If L / EPSILON is less than...  Set the biased exponent to...
+#     1 (i.e. 2 ** 0)                 0
+#     2 (i.e. 2 ** 1)                 1
+#     4 (i.e. 2 ** 2)                 2
+#     ...                             ...
+# So the biased exponent should be the smallest nonnegative integer e such that
+#     L / EPSILON == m * (2 ** e)
+# with m < 1.  This is exactly the computation provided by math.frexp(),
+# except that we have to handle "nonnegative" ourselves.
+
+# Because we do not check directly that the packed values fit in 18 bits, a
+# rounding error in this calculation could cause a large error in the result.
+# Fortunately, the values of M where we need to transition between exponents
+# are all power-of-two multiples of EPSILON, which are represented exactly and
+# produce exact results when divided by EPSILON and passed to frexp().
+
+# Finally, note that this calculation ignores the availablity of 'gAA' for
+# -(2 ** 17).  Using this string would allow us to encode a small number of
+# vectors with greater precision, but it doesn't seem worth the effort.
 
 
 def pack64(vector):
@@ -48,12 +68,9 @@ def pack64(vector):
     largest_entry = np.max(np.abs(vector))
     if not np.isfinite(largest_entry):
         raise ValueError('Vector contains an invalid value.')
-    if not largest_entry:  # Remarkably, using == here is measurably slower
-        biased_exponent = 0
-    else:
-        biased_exponent = max(math.frexp(float(largest_entry) / EPSILON)[1], 0)
-        if biased_exponent > 63:
-            raise OverflowError('Vector has an entry too large to encode.')
+    biased_exponent = max(math.frexp(float(largest_entry) / EPSILON)[1], 0)
+    if biased_exponent > 63:
+        raise OverflowError('Vector has an entry too large to encode.')
 
     values = np.round(vector * 0.5 ** (biased_exponent - 40)).astype(np.int)
     digits = np.empty((3 * len(values) + 1,), dtype=np.int)
