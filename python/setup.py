@@ -11,4 +11,5 @@ setup(
     description = 'A library for representing floating point vectors in a compact, base64-like format',
     py_modules=['pack64'],
     install_requires=['numpy >= 1.9.0'],
+    tests_require=['pytest']
 )
