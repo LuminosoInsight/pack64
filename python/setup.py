@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pack64',
-    version = '2.0.0',
+    version = '2.0.1',
     maintainer='Luminoso Technologies, Inc.',
     maintainer_email='info@luminoso.com',
     url = 'http://github.com/LuminosoInsight/pack64',
@@ -11,4 +11,5 @@ setup(
     description = 'A library for representing floating point vectors in a compact, base64-like format',
     py_modules=['pack64'],
     install_requires=['numpy >= 1.9.0'],
+    tests_require=['pytest']
 )
