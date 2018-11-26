@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
 import numpy as np
-from nose.tools import assert_raises, eq_
-
 from pack64 import pack64, unpack64
+import pytest
 
 
 def _check(vector, expected=None, exact=False):
@@ -16,9 +15,9 @@ def _check(vector, expected=None, exact=False):
     # vectors, and the tolerance to which it was compared.
     encoded = pack64(vector)
     if expected is not None:
-        eq_(encoded, expected)
+        assert encoded == expected
     decoded = unpack64(encoded)
-    eq_(pack64(decoded), encoded)
+    assert pack64(decoded) == encoded
 
     if not len(vector):
         deviation = 0.0
@@ -72,10 +71,10 @@ def test_specific_vectors():
     # Show that the tolerance used by the test code is as tight as possible
     # The maximum possible deviation in the absence of underflow
     deviation, tolerance = _check([2.0 ** 17 - 0.5, 1.0], expected='pQAAAAA')
-    eq_(deviation, tolerance)
+    assert deviation == tolerance
     # The maximum possible deviation caused by underflow
     deviation, tolerance = _check([2.0 ** -41], expected='AAAA')
-    eq_(deviation, tolerance)
+    assert deviation == tolerance
 
 
 def test_input_types():
@@ -83,37 +82,37 @@ def test_input_types():
     assert np.all(unpack64('abcd') == unpack64(b'abcd'))
 
     # Anything that can be converted to a NumPy array is packable
-    eq_(pack64([1.0, 2.0]), 'ZIAAQAA')
-    eq_(pack64((1.0, 2.0)), 'ZIAAQAA')
-    eq_(pack64(np.array([1.0, 2.0], dtype=np.float32)), 'ZIAAQAA')
-    eq_(pack64(np.array([1.0, 2.0], dtype=np.float64)), 'ZIAAQAA')
-    eq_(pack64(np.array([1.0, 2.0], dtype=np.int32)), 'ZIAAQAA')
+    assert pack64([1.0, 2.0]) == 'ZIAAQAA'
+    assert pack64((1.0, 2.0)) == 'ZIAAQAA'
+    assert pack64(np.array([1.0, 2.0], dtype=np.float32)) == 'ZIAAQAA'
+    assert pack64(np.array([1.0, 2.0], dtype=np.float64)) == 'ZIAAQAA'
+    assert pack64(np.array([1.0, 2.0], dtype=np.int32)) == 'ZIAAQAA'
 
 
 def test_errors():
     # Nonfinite values are rejected
     for value in (float('inf'), float('nan')):
-        with assert_raises(ValueError):
+        with pytest.raises(ValueError):
             pack64([value])
 
     # Out of range values are rejected; check near the edge of the range
-    with assert_raises(OverflowError):
+    with pytest.raises(OverflowError):
         pack64([(2.0 ** 17 - 0.5) * 2.0 ** 23])
     _check([(2.0 ** 17 - 0.6) * 2.0 ** 23], expected='_f__')
-    with assert_raises(OverflowError):
+    with pytest.raises(OverflowError):
         # (This could actually be encoded as '_gAA'.)
         pack64([-(2.0 ** 17 - 0.5) * 2.0 ** 23])
     _check([-(2.0 ** 17 - 0.6) * 2.0 ** 23], expected='_gAB')
 
     # Strings with bad lengths or characters are rejected
     for string in ('', 'xx', b'xx', '\U0001f43c', 'Hey!', 'panda', 'rutabaga'):
-        with assert_raises(ValueError):
+        with pytest.raises(ValueError):
             unpack64(string)
 
     # Some (but not all) bad strings are accepted if error checking is disabled
     for string in ('xx', 'Hey!', 'panda'):
         unpack64(string, check=False)
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         unpack64('rutabaga', check=False)
 
 
