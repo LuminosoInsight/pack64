@@ -10,13 +10,21 @@ import math
 import numpy as np
 
 
-# The characters used in encoding, in order; various derived lookup tables
-CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-DIGIT_TO_CHAR = np.fromstring(CHARS, dtype=np.uint8)
+# CHARS is a bytestring of the 64 characters in the encoding, in order.
+CHARS = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+
+# Make lookup tables for those characters.
+# DIGIT_TO_CHAR maps the numbers 0-63 to those characters.
+DIGIT_TO_CHAR = np.frombuffer(CHARS, dtype=np.uint8)
+
+# CHAR_TO_DIGIT maps byte values of those characters to the numbers 0-63.
+# Other byte values are mapped to -1, and do not appear in VALID_CHARS.
 CHAR_TO_DIGIT = np.full((128,), -1, dtype=np.int)
 CHAR_TO_DIGIT[DIGIT_TO_CHAR] = np.arange(64)
-VALID_CHARS = set(CHARS) | set(CHARS.encode('ascii'))
+VALID_CHARS = set(CHARS)
 
+# Compute a small value that we use in determining what the exponent should
+# be (more on this in a moment):
 EPSILON = (2.0 ** 17 - 0.5) * 2.0 ** -40
 
 # EPSILON is used to determine the biased exponent emitted by pack64().  The
@@ -88,9 +96,14 @@ def unpack64(string, check=True):
     Optionally pass check=False to disable input validation, for circumstances
     where you are sure the input is a properly packed vector.
     '''
-    if check and (len(string) % 3 != 1 or not VALID_CHARS.issuperset(string)):
+    if isinstance(string, bytes):
+        bstring = string
+    else:
+        bstring = string.encode('ascii')
+
+    if check and (len(bstring) % 3 != 1 or not VALID_CHARS.issuperset(bstring)):
         raise ValueError('Cannot decode string %r' % string)
-    digits = CHAR_TO_DIGIT[np.fromstring(string, dtype=np.uint8)]
+    digits = CHAR_TO_DIGIT[np.frombuffer(bstring, dtype=np.uint8)]
     values = (digits[1::3] << 12) + (digits[2::3] << 6) + digits[3::3]
     values -= (values >> 17) << 18
     return values.astype(np.float32) * 2.0 ** (digits[0] - 40)

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pack64',
-    version = '2.0.0',
+    version = '2.0.1',
     maintainer='Luminoso Technologies, Inc.',
     maintainer_email='info@luminoso.com',
     url = 'http://github.com/LuminosoInsight/pack64',
