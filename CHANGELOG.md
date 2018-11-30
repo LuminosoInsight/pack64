@@ -1,6 +1,11 @@
 Python
 ======
 
+### 2.0.1
+
+* The decoder now uses `np.frombuffer` instead of the deprecated `np.fromstring`.
+* Ported tests from nosetests to pytest.
+
 ### 2.0.0
 
 This version introduces a NumPy version dependency, and has only been tested in
