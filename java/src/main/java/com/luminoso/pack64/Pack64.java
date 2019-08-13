@@ -34,7 +34,7 @@ public class Pack64 {
     static {
         Map<Character, Integer> aMap = new HashMap<Character,Integer>();
         int i;
-        for (i=0;i<alphabet.length;i++) {
+        for (i = 0; i < alphabet.length; i++) {
             aMap.put(alphabet[i],i);
         }
         alphabet_map = Collections.unmodifiableMap(aMap);
@@ -47,7 +47,7 @@ public class Pack64 {
      * @return Returns an url save base64 string that represents the vector
      */
     public static String pack(double[] vector) {
-        if (vector.length==0)
+        if (vector.length == 0)
             return "A";
 
         // Calculate the smallest power of 2 we *don't* need to represent.
@@ -62,7 +62,7 @@ public class Pack64 {
         }
 
         int upperBound;
-        if (max==0)
+        if (max == 0)
             upperBound = -40;
         else
             upperBound = (int) Math.floor(1 + Math.log(max) / Math.log(2));
@@ -116,7 +116,7 @@ public class Pack64 {
         double unit = Math.pow(2, hexes.get(0) - 40);
         for (i = 0; i < K; i++) {
             int base = i * 3;
-            int integer = 4096*hexes.get(base + 1) + 64*hexes.get(base + 2) + hexes.get(base + 3);
+            int integer = 4096 * hexes.get(base + 1) + 64 * hexes.get(base + 2) + hexes.get(base + 3);
             if (integer >= SIGN_BIT) {
                 integer -= SIGN_BIT * 2;
             }
