@@ -10,7 +10,7 @@ Maven will place the jar file in targets/Pack64-1.0.jar
 
 ### To run unit tests
 
-    mvn tests
+    mvn test
 
 ### To run the unit tests manually
 
