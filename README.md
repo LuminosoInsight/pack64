@@ -1,7 +1,7 @@
 pack64
 ======
 Pack64 is a vector encoding, with code for encoding and decoding in Python,
-Ruby, and JavaScript.  It packs a vector into a kind-of-floating-point,
+Ruby, Java and JavaScript.  It packs a vector into a kind-of-floating-point,
 kind-of-base64 representation, requiring only 3 bytes per vector entry.
 
 This is meant for transmitting vector data in situations where:
