@@ -1,6 +1,10 @@
 Python
 ======
 
+### 2.0.2
+
+* Using `int` instead of `np.int` in line with latest numpy changes.
+
 ### 2.0.1
 
 * The decoder now uses `np.frombuffer` instead of the deprecated `np.fromstring`.
