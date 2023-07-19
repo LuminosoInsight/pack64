@@ -1,6 +1,10 @@
 Python
 ======
 
+### 2.0.2
+
+* Updated Python code to work with newer NumPy
+
 ### 2.0.1
 
 * The decoder now uses `np.frombuffer` instead of the deprecated `np.fromstring`.
