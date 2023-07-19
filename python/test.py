@@ -86,7 +86,7 @@ def test_input_types():
     assert pack64((1.0, 2.0)) == 'ZIAAQAA'
     assert pack64(np.array([1.0, 2.0], dtype=np.float32)) == 'ZIAAQAA'
     assert pack64(np.array([1.0, 2.0], dtype=np.float64)) == 'ZIAAQAA'
-    assert pack64(np.array([1.0, 2.0], dtype=np.int32)) == 'ZIAAQAA'
+    assert pack64(np.array([1.0, 2.0], dtype=int)) == 'ZIAAQAA'
 
 
 def test_errors():

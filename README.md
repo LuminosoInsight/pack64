@@ -91,6 +91,6 @@ matters less.
 
 License
 =======
-(c) 2012-2016 Luminoso Technologies.  pack64 is released as free software under
+(c) 2012-2023 Luminoso Technologies.  pack64 is released as free software under
 the MIT license.  See LICENSE for the terms of the MIT license (there aren't
 many).

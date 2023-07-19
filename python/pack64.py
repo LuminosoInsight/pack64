@@ -19,7 +19,7 @@ DIGIT_TO_CHAR = np.frombuffer(CHARS, dtype=np.uint8)
 
 # CHAR_TO_DIGIT maps byte values of those characters to the numbers 0-63.
 # Other byte values are mapped to -1, and do not appear in VALID_CHARS.
-CHAR_TO_DIGIT = np.full((128,), -1, dtype=np.int)
+CHAR_TO_DIGIT = np.full((128,), -1, dtype=int)
 CHAR_TO_DIGIT[DIGIT_TO_CHAR] = np.arange(64)
 VALID_CHARS = set(CHARS)
 
@@ -80,8 +80,8 @@ def pack64(vector):
     if biased_exponent > 63:
         raise OverflowError('Vector has an entry too large to encode.')
 
-    values = np.round(vector * 0.5 ** (biased_exponent - 40)).astype(np.int)
-    digits = np.empty((3 * len(values) + 1,), dtype=np.int)
+    values = np.round(vector * 0.5 ** (biased_exponent - 40)).astype(int)
+    digits = np.empty((3 * len(values) + 1,), dtype=int)
     digits[0] = biased_exponent
     digits[1::3] = values >> 12
     digits[2::3] = values >> 6
